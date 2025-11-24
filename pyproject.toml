@@ -25,7 +25,7 @@ serverapp = "fedboost_mvs.server_app:app"
 clientapp = "fedboost_mvs.client_app:app"
 
 [tool.flwr.app.config]
-num-server-rounds = 3
+num-server-rounds = 5
 fraction-train = 0.1
 fraction-evaluate = 0.1
 local-epochs = 1
@@ -38,7 +38,8 @@ params.eval-metric = "auc"
 params.nthread = 16
 params.num-parallel-tree = 1
 params.subsample = 1
-params.tree-method = "hist"
+params.tree-method = "gpu_hist"
+params.device = "cuda"
 
 # Default federation to use when running the app
 [tool.flwr.federations]
@@ -47,3 +48,5 @@ default = "local-simulation"
 # Local simulation federation with 10 virtual SuperNodes
 [tool.flwr.federations.local-simulation]
 options.num-supernodes = 10
+options.backend.client-resources.num-cpus = 2
+options.backend.client-resources.num-gpus = 1.0

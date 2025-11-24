@@ -30,9 +30,18 @@ ENV/
 *.model
 *.bin
 
+# Exception: Keep config files
+!**/config.json
+!pyproject.toml
+
 # Flower
 *.fab
 
 # Data
 data/
 datasets/
+
+# Results - ignore run directories but keep structure
+results/run_*/
+!results/README.md
+!results/summary.md

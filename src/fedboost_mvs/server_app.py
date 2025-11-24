@@ -1,5 +1,9 @@
 """fedboost-mvs: Flower ServerApp for federated XGBoost aggregation."""
 
+import json
+from datetime import datetime
+from pathlib import Path
+
 import numpy as np
 import xgboost as xgb
 from flwr.app import ArrayRecord, Context
@@ -46,6 +50,11 @@ def main(grid: Grid, context: Context) -> None:
         num_rounds=num_rounds,
     )
 
+    # Create timestamped output directory
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_dir = Path("results") / f"run_{timestamp}"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
     # Save final model to disk
     bst = xgb.Booster(params=params)
     global_model = bytearray(result.arrays["0"].numpy().tobytes())
@@ -54,5 +63,25 @@ def main(grid: Grid, context: Context) -> None:
     bst.load_model(global_model)
 
     # Save model
-    print("\nSaving final model to disk...")
-    bst.save_model("final_model.json")
+    model_path = output_dir / "final_model.json"
+    print(f"\nSaving final model to {model_path}...")
+    bst.save_model(str(model_path))
+    
+    # Save run configuration
+    config_path = output_dir / "config.json"
+    with open(config_path, "w") as f:
+        json.dump(dict(context.run_config), f, indent=2)
+    
+    # Save run metadata
+    metadata = {
+        "timestamp": timestamp,
+        "num_rounds": num_rounds,
+        "fraction_train": fraction_train,
+        "fraction_evaluate": fraction_evaluate,
+        "params": params,
+    }
+    metadata_path = output_dir / "metadata.json"
+    with open(metadata_path, "w") as f:
+        json.dump(metadata, f, indent=2)
+    
+    print(f"Results saved to: {output_dir}")
