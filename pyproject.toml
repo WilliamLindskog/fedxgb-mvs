@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fedboost-mvs"
+version = "0.1.0"
+description = "Federated XGBoost with Minimal Variance Sampling (MVS)"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = [
+    "flwr[simulation]>=1.23.0,<2.0.0",
+    "flwr-datasets>=0.5.0",
+    "xgboost>=2.0.0,<3.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fedboost_mvs"]
+
+[tool.flwr.app]
+publisher = "WilliamLindskog"
+
+[tool.flwr.app.components]
+serverapp = "fedboost_mvs.server_app:app"
+clientapp = "fedboost_mvs.client_app:app"
+
+[tool.flwr.app.config]
+num-server-rounds = 3
+fraction-train = 0.1
+fraction-evaluate = 0.1
+local-epochs = 1
+
+# XGBoost parameters
+params.objective = "binary:logistic"
+params.eta = 0.1
+params.max-depth = 8
+params.eval-metric = "auc"
+params.nthread = 16
+params.num-parallel-tree = 1
+params.subsample = 1
+params.tree-method = "hist"
+
+# Default federation to use when running the app
+[tool.flwr.federations]
+default = "local-simulation"
+
+# Local simulation federation with 10 virtual SuperNodes
+[tool.flwr.federations.local-simulation]
+options.num-supernodes = 10
